@@ -22,6 +22,8 @@ let cards = [
 
 let openCards = [];
 let seenCards = new Set();
+let stars = 3;
+let moves = 0;
 /*
  * Display the cards on the page
  *   - shuffle the list of cards using the provided "shuffle" method below
@@ -44,7 +46,12 @@ function shuffle(array) {
     return array;
 }
 
-function reset(){
+function restart(){
+  stars = 3;
+  console.log(document.querySelectorAll('.stars i'));
+  document.querySelectorAll('.stars i').forEach(item => {item.className = 'fa fa-star'});
+  moves = 0;
+  document.querySelector('.moves').innerText = moves;
   cards = shuffle(cards);
 
   const cardElements = document.querySelectorAll('.card');
@@ -53,7 +60,7 @@ function reset(){
       cardElements[i].querySelector('i').className = cards[i];
   }
 }
-reset();
+restart();
 
 function showCard(cardElement){
   cardElement.className = 'card open show';
@@ -67,6 +74,7 @@ function clickHandler(e){
 }
 
 document.querySelector('.deck').addEventListener('click',clickHandler,false);
+document.querySelector('.restart').addEventListener('click',restart,false);
 
 /*
  * set up the event listener for a card. If a card is clicked:
