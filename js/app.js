@@ -43,6 +43,12 @@ function shuffle(array) {
 }
 cards = shuffle(cards);
 
+const cardElements = document.querySelectorAll('.card');
+for (let i=0; i<cards.length; i++){
+    cardElements[i].className = "card";  //reset all cards facedown
+    cardElements[i].querySelector('i').className = cards[i];
+}
+
 
 
 /*
