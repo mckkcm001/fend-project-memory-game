@@ -20,6 +20,8 @@ let cards = [
   "fa fa-bomb",
 ];
 
+let openCards = [];
+let seenCards = new Set();
 /*
  * Display the cards on the page
  *   - shuffle the list of cards using the provided "shuffle" method below
@@ -41,15 +43,30 @@ function shuffle(array) {
 
     return array;
 }
-cards = shuffle(cards);
 
-const cardElements = document.querySelectorAll('.card');
-for (let i=0; i<cards.length; i++){
-    cardElements[i].className = "card";  //reset all cards facedown
-    cardElements[i].querySelector('i').className = cards[i];
+function reset(){
+  cards = shuffle(cards);
+
+  const cardElements = document.querySelectorAll('.card');
+  for (let i=0; i<cards.length; i++){
+      cardElements[i].className = "card";  //reset all cards facedown
+      cardElements[i].querySelector('i').className = cards[i];
+  }
+}
+reset();
+
+function showCard(cardElement){
+  cardElement.className = 'card open show';
 }
 
+function clickHandler(e){
+  cardElement = e.target;
+  if (cardElement.className === 'card'){
+    showCard(cardElement);
+  }
+}
 
+document.querySelector('.deck').addEventListener('click',clickHandler,false);
 
 /*
  * set up the event listener for a card. If a card is clicked:
