@@ -21,9 +21,9 @@ let cards = [
 ];
 
 let openCards = [];
-let seenCards = new Set();
 let stars = 3;
 let moves = 0;
+let matches = 0;
 /*
  * Display the cards on the page
  *   - shuffle the list of cards using the provided "shuffle" method below
@@ -46,28 +46,91 @@ function shuffle(array) {
     return array;
 }
 
-function restart(){
-  stars = 3;
-  console.log(document.querySelectorAll('.stars i'));
-  document.querySelectorAll('.stars i').forEach(item => {item.className = 'fa fa-star'});
-  moves = 0;
-  document.querySelector('.moves').innerText = moves;
-  cards = shuffle(cards);
+function updateStars(stars){
+  const starElements = document.querySelectorAll('.stars i');
+  for (let i=0; i<3; i++){
+    if (i<stars){
+      starElements[i].className = 'fa fa-star';
+    }
+    else {
+      starElements[i].className = 'nostar';
+    }
+  }
+}
 
+function updateMoves(moves){
+  document.querySelector('.moves').innerText = moves;
+}
+
+function restart(){
+  openCards = [];
+  stars = 3;
+  moves = 0;
+  matches = 0;
+  updateStars(stars);
+  updateMoves(moves);
+
+  cards = shuffle(cards);
   const cardElements = document.querySelectorAll('.card');
   for (let i=0; i<cards.length; i++){
       cardElements[i].className = "card";  //reset all cards facedown
       cardElements[i].querySelector('i').className = cards[i];
   }
 }
-restart();
+
+function match(){
+  openCards.forEach(item => {
+    item.className = 'card match';
+  });
+  openCards = [];
+  matches++;
+  if (matches === 8){
+    $('.modal-body').text(`${moves} moves is a ${stars} star rating`)
+    $('#myModal').modal()
+  }
+}
+
+function testMatch(){
+  const card1 = openCards[0];
+  const card2 = openCards[1];
+  if (card1.querySelector('i').className === card2.querySelector('i').className){
+    match();
+  }
+}
 
 function showCard(cardElement){
   cardElement.className = 'card open show';
+  moves++;
+  updateMoves(moves);
+  if (moves > 32){
+    stars = 0;
+  }
+  else if (moves > 28){
+    stars = 1;
+  }
+  else if (moves > 24){
+    stars = 2;
+  }
+  updateStars(stars);
+  switch(openCards.length){
+    case 0:
+      openCards.push(cardElement);
+      break;
+    case 1:
+      openCards.push(cardElement);
+      testMatch();
+      break;
+    case 2:
+      openCards.forEach(item => {
+        item.className = 'card';
+      });
+      openCards = [];
+      openCards.push(cardElement);
+  }
 }
 
 function clickHandler(e){
-  cardElement = e.target;
+  const cardElement = e.target;
   if (cardElement.className === 'card'){
     showCard(cardElement);
   }
@@ -75,7 +138,7 @@ function clickHandler(e){
 
 document.querySelector('.deck').addEventListener('click',clickHandler,false);
 document.querySelector('.restart').addEventListener('click',restart,false);
-
+restart();
 /*
  * set up the event listener for a card. If a card is clicked:
  *  - display the card's symbol (put this functionality in another function that you call from this one)

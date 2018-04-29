@@ -21,6 +21,10 @@ body {
     font-family: 'Coda', cursive;
 }
 
+.modal-content {
+  background: linear-gradient(160deg, #02ccba 0%, #aa7ecd 100%);
+}
+
 .container {
     display: flex;
     justify-content: center;
