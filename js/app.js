@@ -1,5 +1,10 @@
 /*
- * Create a list that holds all of your cards
+ * Initialization steps--global variables
+ * cards array--these are the names of classes used to display
+ * font awesome images in the <i class="fa fa-diamond"></i> elements.
+ * openCards array--holds cards turned face up.
+ * stars, moves, matches, and time are all counters set to zero.
+ * clock--used to store reference to setInterval so setInterval can be stopped
  */
 let cards = [
   "fa fa-diamond",
@@ -24,14 +29,13 @@ let openCards = [];
 let stars = 3;
 let moves = 0;
 let matches = 0;
-/*
- * Display the cards on the page
- *   - shuffle the list of cards using the provided "shuffle" method below
- *   - loop through each card and create its HTML
- *   - add each card's HTML to the page
- */
+let time = 0;
+let clock;
 
-// Shuffle function from http://stackoverflow.com/a/2450976
+/*
+ * Shuffle function from http://stackoverflow.com/a/2450976.
+ * Called in restart.
+ */
 function shuffle(array) {
     var currentIndex = array.length, temporaryValue, randomIndex;
 
@@ -46,38 +50,82 @@ function shuffle(array) {
     return array;
 }
 
-function updateStars(stars){
+/*
+ * Called by restart to update the stars display.
+ * Displayed stars have className of 'fa fa-star'.
+ */
+function updateStarsDisplay(stars){
   const starElements = document.querySelectorAll('.stars i');
-  for (let i=0; i<3; i++){
-    if (i<stars){
-      starElements[i].className = 'fa fa-star';
-    }
-    else {
-      starElements[i].className = 'nostar';
-    }
+
+  for (let i = 0; i < 3; i++){
+    i < stars ? starElements[i].className = 'fa fa-star' :
+                starElements[i].className = 'nostar';
   }
 }
 
-function updateMoves(moves){
+/*
+ * Called by restart to update the moves display.
+ */
+function updateMovesDisplay(moves){
   document.querySelector('.moves').innerText = moves;
 }
 
+/*
+ * Called by restart to update the timer display.
+ */
+function updateTimeDisplay(time){
+  $('.timer').text(time);
+}
+
+/*
+ * Resets the game to intial conditions. Called at the end of this script,
+ * when restart is clicked, and when modal closes.
+ */
 function restart(){
+  // Needed for restart click.
+  clearInterval(clock);
   openCards = [];
+  matches = 0;
   stars = 3;
   moves = 0;
-  matches = 0;
-  updateStars(stars);
-  updateMoves(moves);
-
+  time = 0;
+  updateTimeDisplay(time);
+  updateStarsDisplay(stars);
+  updateMovesDisplay(moves);
+  clock = setInterval(() => {
+    // Increment now so that when updateTime is called, time is correct.
+    time++;
+    updateTimeDisplay(time);
+  },1000);
+  //Suffle cards and display face down by setting className to 'card'.
   cards = shuffle(cards);
   const cardElements = document.querySelectorAll('.card');
   for (let i=0; i<cards.length; i++){
-      cardElements[i].className = "card";  //reset all cards facedown
+      cardElements[i].className = 'card';
       cardElements[i].querySelector('i').className = cards[i];
   }
 }
 
+/*
+ * Called when all matches are made. The clock is stopped, the modal is
+ * displayed, and the game is reset when the modal closes.
+ */
+function endGame(){
+  clearInterval(clock);
+  $('.modal-title').text(`You matched all cards in ${time} seconds!!`)
+  $('.modal-body').text(`${moves} moves is a ${stars} star rating!`);
+  $('#myModal').modal();
+  $('#myModal').on('hidden.bs.modal', function (e) {
+    restart();
+  });
+}
+
+/*
+ * Called when two cards match. To indicate a match and prevent click selection,
+ * the className is changed to 'card match'. The openCards array is
+ * cleared, and the matches counter is incremented.
+ * If the matches are complete, endGame is called.
+ */
 function match(){
   openCards.forEach(item => {
     item.className = 'card match';
@@ -85,50 +133,82 @@ function match(){
   openCards = [];
   matches++;
   if (matches === 8){
-    $('.modal-body').text(`${moves} moves is a ${stars} star rating`)
-    $('#myModal').modal()
+    endGame();
   }
 }
 
+/*
+ * Called when two cards are showing. If the two cards match,
+ * call match. Otherwise, do nothing until player clicks on
+ * a new face down card.
+ */
 function testMatch(){
-  const card1 = openCards[0];
-  const card2 = openCards[1];
-  if (card1.querySelector('i').className === card2.querySelector('i').className){
+  const card1 = openCards[0].querySelector('i').className;
+  const card2 = openCards[1].querySelector('i').className;
+  if (card1 === card2){
     match();
   }
 }
 
-function showCard(cardElement){
-  cardElement.className = 'card open show';
+/*
+ * Increment moves, and set stars based on moves.
+ * It can take up to 30 moves to find all matches, so anything above that
+ * is two stars, and anything above 34 moves is one star.
+ * Called by showCard.
+ */
+function updateMoves(cardElement) {
   moves++;
-  updateMoves(moves);
-  if (moves > 32){
-    stars = 0;
-  }
-  else if (moves > 28){
-    stars = 1;
-  }
-  else if (moves > 24){
-    stars = 2;
-  }
-  updateStars(stars);
+  updateMovesDisplay(moves);
+  moves > 34 ? stars = 1 : moves > 30 ? stars = 2 : stars = 3;
+  updateStarsDisplay(stars);
+}
+
+/*
+ * Add card just turned over to openCards array and show card by changing class.
+ * Called by showCard.
+ */
+function addCard(cardElement) {
+  openCards.push(cardElement);
+  cardElement.className = 'card open show';
+}
+
+/*
+ * Called when clickHandler() detects a click on a face down card. updateMoves
+ * is called to handle moves and stars changes.
+ * The number of cards showing determines what action is to be taken.
+ * All branches call addCard.
+ */
+function showCard(cardElement){
+  updateMoves(cardElement);
+
   switch(openCards.length){
+    // If this is the first card turned over, put it in the openCards array.
     case 0:
-      openCards.push(cardElement);
+      addCard(cardElement);
       break;
+
+    // If this is the second card turned over, put it in the openCards array
+    // and call testMatch().
     case 1:
-      openCards.push(cardElement);
+      addCard(cardElement);
       testMatch();
       break;
+
+    // Two unmatched cards are showing, so turn them face down by changing
+    // className, clear the openCards array, and put the new card in the
+    // openCards array.
     case 2:
       openCards.forEach(item => {
         item.className = 'card';
       });
       openCards = [];
-      openCards.push(cardElement);
+      addCard(cardElement);
   }
 }
 
+/*
+ * If a click on the deck list is on a down facing card, call showCard.
+ */
 function clickHandler(e){
   const cardElement = e.target;
   if (cardElement.className === 'card'){
@@ -136,6 +216,10 @@ function clickHandler(e){
   }
 }
 
+/*
+ * Add click listeners to .deck and .restart elements and start game by calling
+ * restart.
+ */
 document.querySelector('.deck').addEventListener('click',clickHandler,false);
 document.querySelector('.restart').addEventListener('click',restart,false);
 restart();

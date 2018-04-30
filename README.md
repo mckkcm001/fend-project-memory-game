@@ -2,19 +2,33 @@
 
 ## Table of Contents
 
+* [About](#about)
 * [Instructions](#instructions)
-* [Contributing](#contributing)
+* [Dependencies](#dependencies)
+
+## About
+
+This project is required for completion of the Front End Nanodegree Developer program
+at [Udacity](udacity.com). The starting code was cloned from [GitHub](https://github.com/udacity/fend-project-memory-game.git)
 
 ## Instructions
 
-The starter project has some HTML and CSS styling to display a static version of the Memory Game project. You'll need to convert this project from a static project to an interactive one. This will require modifying the HTML and CSS files, but primarily the JavaScript file.
+To play, click or touch a card. This will reveal a character. Touch another card to reveal another
+character. If the characters match, their background color will change and they will stay revealed.
+If the characters don't match, then touching another unrevealed card will hide them, leaving only
+the third card revealed. Each click or touch is a move. When all matches are found, a message
+will appear with your number of moves, the seconds to complete the game, and a star rating. For 30
+or fewer moves, the rating is three stars; for 31 to 34 moves, two stars; and more than 34 moves, one star.
 
-To get started, open `js/app.js` and start building out the app's functionality
 
-For specific, detailed instructions, look at the project instructions in the [Udacity Classroom](https://classroom.udacity.com/me).
+## Dependencies
 
-## Contributing
+Bootstrap dependencies are coded for CDN download:
+* [jquery-3.2.1.slim.min.js](https://code.jquery.com/jquery-3.2.1.slim.min.js)
+* [popper.min.js](https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js)
+* [bootstrap.min.js](https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js)
+* [bootstrap.min.css](https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css)
+* [font-awesome.min.css](https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css)
 
-This repository is the starter code for _all_ Udacity students. Therefore, we most likely will not accept pull requests.
-
-For details, check out [CONTRIBUTING.md](CONTRIBUTING.md).
+Font dependency:
+* [Coda](https://fonts.googleapis.com/css?family=Coda")
