@@ -4,6 +4,8 @@
  * font awesome images in the <i class="fa fa-diamond"></i> elements.
  * openCards array--holds cards turned face up.
  * stars, moves, matches, and time are all counters set to zero.
+ * firstCard is for starting the clock when the first cardis clicked. Can't use
+ * time = 0 since a player may click another card before time increments.
  * clock--used to store reference to setInterval so setInterval can be stopped
  */
 let cards = [
@@ -30,6 +32,7 @@ let stars = 3;
 let moves = 0;
 let matches = 0;
 let time = 0;
+let firstCard = true;
 let clock;
 
 /*
@@ -58,8 +61,7 @@ function updateStarsDisplay(stars){
   const starElements = document.querySelectorAll('.stars i');
 
   for (let i = 0; i < 3; i++){
-    i < stars ? starElements[i].className = 'fa fa-star' :
-                starElements[i].className = 'nostar';
+    starElements[i].className = i < stars ? 'fa fa-star' : 'nostar';
   }
 }
 
@@ -78,26 +80,43 @@ function updateTimeDisplay(time){
 }
 
 /*
+ * Function to start clock. Called when first card is clicked. Time is
+ * incremented now so that when updateTime is called, time is correct and
+ * a new clock is not started.
+ */
+function startClock(){
+  clock = setInterval(() => {
+    time++;
+    updateTimeDisplay(time);
+  },1000);
+}
+
+/*
+ * Function to stop clock. Called by gameEnd and restart.
+ */
+function stopClock(){
+  clearInterval(clock);
+}
+
+/*
  * Resets the game to intial conditions. Called at the end of this script,
  * when restart is clicked, and when modal closes.
  */
 function restart(){
   // Needed for restart click.
-  clearInterval(clock);
+  stopClock();
+
   openCards = [];
   matches = 0;
   stars = 3;
   moves = 0;
   time = 0;
+  firstCard = true;
   updateTimeDisplay(time);
   updateStarsDisplay(stars);
   updateMovesDisplay(moves);
-  clock = setInterval(() => {
-    // Increment now so that when updateTime is called, time is correct.
-    time++;
-    updateTimeDisplay(time);
-  },1000);
-  //Suffle cards and display face down by setting className to 'card'.
+
+  //Shuffle cards and display face down by setting className to 'card'.
   cards = shuffle(cards);
   const cardElements = document.querySelectorAll('.card');
   for (let i=0; i<cards.length; i++){
@@ -111,8 +130,8 @@ function restart(){
  * displayed, and the game is reset when the modal closes.
  */
 function endGame(){
-  clearInterval(clock);
-  $('.modal-title').text(`You matched all cards in ${time} seconds!!`)
+  stopClock();
+  $('.modal-title').text(`You matched all cards in ${time} seconds!!`);
   $('.modal-body').text(`${moves} moves is a ${stars} star rating!`);
   $('#myModal').modal();
   $('#myModal').on('hidden.bs.modal', function (e) {
@@ -140,9 +159,10 @@ function match(){
 /*
  * Called when two cards are showing. If the two cards match,
  * call match. Otherwise, do nothing until player clicks on
- * a new face down card.
+ * a new face down card. Also, moves and stars are updated.
  */
 function testMatch(){
+  updateMoves();
   const card1 = openCards[0].querySelector('i').className;
   const card2 = openCards[1].querySelector('i').className;
   if (card1 === card2){
@@ -152,14 +172,14 @@ function testMatch(){
 
 /*
  * Increment moves, and set stars based on moves.
- * It can take up to 30 moves to find all matches, so anything above that
- * is two stars, and anything above 34 moves is one star.
+ * It can take up to 15 moves to find all matches, so anything above that
+ * is two stars, and anything above 17 moves is one star.
  * Called by showCard.
  */
-function updateMoves(cardElement) {
+function updateMoves() {
   moves++;
   updateMovesDisplay(moves);
-  moves > 34 ? stars = 1 : moves > 30 ? stars = 2 : stars = 3;
+  stars = moves > 17 ? 1 : moves > 15 ? 2 : 3;
   updateStarsDisplay(stars);
 }
 
@@ -179,8 +199,6 @@ function addCard(cardElement) {
  * All branches call addCard.
  */
 function showCard(cardElement){
-  updateMoves(cardElement);
-
   switch(openCards.length){
     // If this is the first card turned over, put it in the openCards array.
     case 0:
@@ -207,11 +225,16 @@ function showCard(cardElement){
 }
 
 /*
- * If a click on the deck list is on a down facing card, call showCard.
+ * If a click on the deck list is on a down facing card, call showCard. If this
+ * is the first card (time = 0) then start clock.
  */
 function clickHandler(e){
   const cardElement = e.target;
   if (cardElement.className === 'card'){
+    if (firstCard){
+      startClock();
+      firstCard = false;
+    }
     showCard(cardElement);
   }
 }
